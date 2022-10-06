@@ -1,0 +1,165 @@
+-- Creating the tables
+
+CREATE TABLE business(course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50),	price INT,	
+					  num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					  content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE
+					  );
+					  
+SELECT * FROM business;
+
+CREATE TABLE design(course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50), price INT,	
+					  num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					  content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE
+					  );
+				
+SELECT * FROM design;
+
+CREATE TABLE music(course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50), price INT,	
+					  num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					  content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE
+					  );
+
+SELECT * FROM music;
+
+DROP TABLE IF EXISTS web_development;
+CREATE TABLE web_development(course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50), price INT,	
+					  num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					  content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE
+					  );
+					  
+SELECT * FROM web_development;
+
+--Combining the tables using UNIONALL
+
+SELECT * FROM business
+UNION ALL
+SELECT * FROM design
+UNION ALL
+SELECT * FROM music
+UNION ALL
+SELECT * FROM web_development;
+
+-- Lets create a temp table for the union all data
+DROP TABLE IF EXISTS course_t;
+CREATE TEMP TABLE course_t (course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50), price INT,	
+					        num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					        content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE
+						   );
+
+-- Lets insert the combined data into the temp table course_t						   
+INSERT INTO course_t
+SELECT * FROM business
+UNION ALL
+SELECT * FROM design
+UNION ALL
+SELECT * FROM music
+UNION ALL
+SELECT * FROM web_development;
+
+--Lets see all the data from the temp table
+SELECT * FROM course_t;	
+
+-- Lets create a new column free_paid from the price column to see courses that free or paid
+SELECT *,
+CASE
+    WHEN price = 0 THEN 'free'
+	ELSE 'paid'
+	END free_paid
+FROM course_t;
+
+-- Lets create another temp table from the first one and include the new column free_paid
+DROP TABLE IF EXISTS course_temp;
+CREATE TEMP TABLE course_temp (course_id INT, course_title VARCHAR(255), url VARCHAR(255), Free_Beginner_Course VARCHAR(50), price INT,	
+					        num_subscribers INT, num_reviews INT,	num_lectures INT, level VARCHAR(50), Rating NUMERIC,	
+					        content_duration NUMERIC, published_timestamp TIMESTAMPTZ, subject VARCHAR(50), Date DATE, free_paid TEXT
+						   );
+
+-- Lets insert into the new temp table course_temp
+INSERT INTO course_temp
+SELECT *,
+CASE
+    WHEN price = 0 THEN 'free'
+	ELSE 'paid'
+	END free_paid
+FROM course_t;
+
+--Lets select all the data from the new temp table
+SELECT * 
+FROM course_temp;	
+
+--Lets check the subject with the highest total number of subscribers
+SELECT subject, SUM(num_subscribers) AS total_number_of_subscribers
+FROM course_temp 
+WHERE subject IS NOT NULL
+GROUP BY subject
+ORDER BY total_number_of_subscribers DESC;
+
+
+
+--Lets check the subject with the highest total number of reviews
+SELECT subject, SUM(num_reviews) AS total_number_of_reviews
+FROM course_temp 
+WHERE subject IS NOT NULL
+GROUP BY subject
+ORDER BY  total_number_of_reviews DESC;
+
+--Lets check the subject with the highest average number of subscribers
+SELECT subject, ROUND(AVG(num_subscribers),2) AS average_number_of_subscribers
+FROM course_temp 
+WHERE subject IS NOT NULL
+GROUP BY subject
+ORDER BY average_number_of_subscribers DESC;
+
+--Lets check the subject with the highest average number of subscribers
+SELECT subject, ROUND(AVG(content_duration),2) AS content_duration
+FROM course_temp 
+WHERE subject IS NOT NULL
+GROUP BY subject
+ORDER BY content_duration DESC;
+
+--Lets check the subject with the highest total number of subscribers based on the levels
+SELECT subject, level, SUM(num_subscribers) AS total_number_of_subscribers
+FROM course_temp 
+WHERE subject IS NOT NULL AND level IS NOT NULL
+GROUP BY subject, level
+ORDER BY subject, total_number_of_subscribers DESC;
+
+/* SELECT DISTINCT(level)
+FROM course_temp
+WHERE level is not null; */
+
+--Lets check the subject with the highest average price based on the levels
+SELECT subject, level, ROUND(AVG(price),2) AS average_price
+FROM course_temp 
+WHERE subject IS NOT NULL AND level IS NOT NULL
+GROUP BY subject, level
+ORDER BY subject, average_price DESC;
+
+--Lets check the subject with the highest average rating based on the levels
+SELECT subject, level, ROUND(AVG(rating),2) AS average_price
+FROM course_temp 
+WHERE subject IS NOT NULL AND level IS NOT NULL
+GROUP BY subject, level
+ORDER BY subject, average_price DESC;
+
+
+-- Lets look at total number of subscribers for free and paid courses
+SELECT  SUM(num_subscribers) AS total_number_of_subscribers
+FROM course_temp
+WHERE free_paid = 'free'
+
+SELECT SUM(num_subscribers) AS total_number_of_subscribers
+FROM course_temp
+WHERE free_paid = 'paid' AND subject IS NOT NULL
+
+--Lets consider the trend of courses over time
+SELECT DISTINCT date
+FROM course_temp
+ORDER BY date DESC
+
+--Lets consider the trend of the courses over time
+SELECT subject, date, SUM(num_subscribers) AS total_number_of_subscribers
+FROM course_temp
+WHERE subject IS NOT NULL AND date IS NOT NULL
+GROUP BY subject, date
+ORDER BY subject, date;
