@@ -163,3 +163,20 @@ FROM course_temp
 WHERE subject IS NOT NULL AND date IS NOT NULL
 GROUP BY subject, date
 ORDER BY subject, date;
+
+
+VISUALIZATION
+For Visualization, Tableau Public is used to answer the question of the analysis with visuals and obtain more insight, the tableau public url is given below:
+https://public.tableau.com/app/profile/thomas.abiodun.olumide/viz/SubjectProject/SubjectPortfolioDashboard?publish=yes
+
+Conclusion
+What can we do with the details of this analysis?
+
+1. The Subject with the most subscribers is the web development with 7.98M subscribers.
+2. The Subject with the least subscribers is the musical instrument with 0.85M subscribers..
+3. The Subject with the most reviews is the web development.
+4. Web development is the most popular and profitable subject, despite its high price across all levels.
+4. Graphic design and musical instrument are the least popular and less profitable subject, despite their low price across all levels.
+5. The number of subscribers for graphic designer and musical instrument have been declining over the years.
+6. There are more subscribers for free courses than those that have paid for courses.
+
